@@ -1,4 +1,5 @@
-// Print out freq to serial monitor
+#include <SPI.h>
+#include <SD.h>
 
 class Pin {
   public:
@@ -39,8 +40,10 @@ void Pin::measure_PWM() {
 }
 
 
-// Globally create pin objects
+// Globally create objects
 Pin pin_2,pin_3;
+File myFile;
+String dataString;
 
 void setup() {
   // Set pin numbers
@@ -59,17 +62,45 @@ void setup() {
   
   // Attach an interrupt to the ISR for pin 3
   attachInterrupt(digitalPinToInterrupt(pin_3.pin_num),ISR_3,CHANGE);
+
+  // Initialize SD card to write to
+  Serial.print("Initializing SD card...");
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
+  
 }
 
 void loop() {
-    Serial.print("Thrust: ");
-    Serial.println(pin_2.freq_time);
-    
-    Serial.print("Aux1: ");
-    Serial.println(pin_3.freq_time);
+  // Initialize string to empty
+  dataString = "";
+  // Create String with interrupt-updated values
+  dataString += String(pin_2.freq_time);
+  dataString += ",";
+  dataString += String(pin_3.freq_time);
+  
+  // Open file on SD. Only one file can be opened at a time!
+  myFile = SD.open("test.txt", FILE_WRITE);
+  if(myFile) {
+    // If file opens, write data
+    myFile.println(dataString);
+    Serial.println(dataString);
+    // Close file
+    myFile.close();
+  } else {
+    Serial.println("Error: could not open test.txt");
+  }
+  
+//  Serial.print("Thrust: ");
+//  Serial.println(pin_2.freq_time);
+//  
+//  Serial.print("Aux1: ");
+//  Serial.println(pin_3.freq_time);
 
-    // Loop 10 times every second
-    delay(100);
+  // Loop 10 times every second
+  delay(50);
 }
 
 void ISR_2() {
