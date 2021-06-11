@@ -11,6 +11,11 @@ unsigned long freq_time = 0;
 // Total program time elapsed
 unsigned long prog_time = 0;
 
+// PWM measurment
+unsigned long freq_time_3 = 0;
+// Total program time elapsed
+unsigned long prog_time_3 = 0;
+
 void setup() {
   // Set buad
   Serial.begin(9600);
@@ -27,33 +32,41 @@ void setup() {
 }
 
 void loop() {
-  // Nothing
-  }
+    Serial.print("thrust: ");
+    Serial.println(freq_time);
+    Serial.print("aux: ");
+    Serial.println(freq_time_3);
+
+    // Loop 10 times every second
+    delay(100);
+}
 
 void ISR_2() {
+  noInterrupts();
   // Read whether current signal is high/low
   state_2 = digitalRead(signalPin_2);
-  // Track time elapsed at every interrupt call
   
   if(state_2 == HIGH) {
+    // Measure the time at which state goes to high
     prog_time = micros();
   } else if(state_2 == LOW) {
+    // Use the time at which state goes low to get total time state was high
     freq_time = micros() - prog_time;
-    Serial.print("Thrust: ");
-    Serial.println(freq_time);
   }
+  interrupts();
 }
 
 void ISR_3() {
+  noInterrupts();
   // Read whether current signal is high/low
   state_3 = digitalRead(signalPin_3);
-  // Track time elapsed at every interrupt call
   
   if(state_3 == HIGH) {
-    prog_time = micros();
+    // Measure the time at which state goes to high
+    prog_time_3 = micros();
   } else if(state_3 == LOW) {
-    freq_time = micros() - prog_time;
-    Serial.print("Aux: ");
-    Serial.println(freq_time);
+    // Use the time at which state goes low to get total time state was high
+    freq_time_3 = micros() - prog_time_3;
   }
+  interrupts();
 }
