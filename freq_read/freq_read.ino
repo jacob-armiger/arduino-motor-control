@@ -45,6 +45,7 @@ Pin pin_2,pin_3;
 File myFile;
 String dataString;
 
+bool SDCARD = false;
 void setup() {
   // Set pin numbers
   pin_2.pin_num = 2;
@@ -56,6 +57,7 @@ void setup() {
   // Initialize the signalPins as inputs:
   pinMode(pin_2.pin_num, INPUT);
   pinMode(pin_3.pin_num, INPUT);
+  pinMode( A0, INPUT );
   
   // Attach an interrupt to the ISR for pin 2
   attachInterrupt(digitalPinToInterrupt(pin_2.pin_num),ISR_2,CHANGE);
@@ -64,34 +66,43 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(pin_3.pin_num),ISR_3,CHANGE);
 
   // Initialize SD card to write to
-  Serial.print("Initializing SD card...");
+  //Serial.print("Initializing SD card...");
   if (!SD.begin(4)) {
-    Serial.println("initialization failed!");
-    while (1);
+    Serial.println("SD Card initialization failed!");
+    //while (1);
   }
-  Serial.println("initialization done.");
+  Serial.println("SD Card initialization done.");
+  SDCARD = true;
   
 }
 
 void loop() {
+  double dv = ( 5.0 * analogRead( A0 ) ) / 1024.0;
+  double bv = dv * 5.7183702642;
+  
   // Initialize string to empty
   dataString = "";
   // Create String with interrupt-updated values
   dataString += String(pin_2.freq_time);
   dataString += ",";
   dataString += String(pin_3.freq_time);
+  dataString += ",";
+  dataString += String( bv );
   
   // Open file on SD. Only one file can be opened at a time!
-  myFile = SD.open("test.txt", FILE_WRITE);
-  if(myFile) {
-    // If file opens, write data
-    myFile.println(dataString);
-    Serial.println(dataString);
-    // Close file
-    myFile.close();
-  } else {
-    Serial.println("Error: could not open test.txt");
+  if( SDCARD ) {
+    myFile = SD.open("test.txt", FILE_WRITE);
+    if(myFile) {
+      // If file opens, write data
+      myFile.println(dataString);
+      
+      // Close file
+      myFile.close();
+    } else {
+      Serial.println("Error: could not open test.txt");
+    }
   }
+  Serial.println(dataString);
   
 //  Serial.print("Thrust: ");
 //  Serial.println(pin_2.freq_time);
