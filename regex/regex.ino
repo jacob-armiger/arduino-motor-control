@@ -30,25 +30,30 @@ void regex_parse() {
   MatchState ms;
   // What to parse
   //ms.Target ("Testing: answer=42");
-  ms.Target ("fhausdfhs");
+  ms.Target ("b=72");
 
   // Match is the expression to parse
   char result = ms.Match("(%a+)=(%d+)", 0);
 
-  if(result = REGEXP_MATCHED) {
-    // Captures are the amount of substrings
-    Serial.print("Captures: ");
-    // ms.level indexes captures
-    Serial.println(ms.level);
+  switch (result) {
+    case REGEXP_MATCHED:
+      // Captures are the amount of substrings
+      Serial.print("Captures: ");
+      // ms.level indexes captures
+      Serial.println(ms.level);
 
-    Serial.print ("Matched on: ");
-    // GetMatch traverses to index of the match and returns matched string
-    Serial.println (ms.GetMatch(buf));
-    
-  } else if (result == REGEXP_NOMATCH) {
-    Serial.println("No Match");
-  } else {
-    // Errors defined in Regexp.h
-    Serial.println("ERROR");
+      Serial.print ("Matched on: ");
+      // GetMatch traverses to index of the match and returns matched string
+      Serial.println (ms.GetMatch(buf));
+      break;
+      
+    case REGEXP_NOMATCH:
+      Serial.println("No Match");
+      break;
+  
+    default:
+      Serial.print ("Regexp error: ");
+      Serial.println (result, DEC);
+      break;
   }
 }
