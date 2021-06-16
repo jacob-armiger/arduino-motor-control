@@ -1,5 +1,8 @@
 #include <Regexp.h>
 
+void regex_parse( const char * ); // good practice to add function prototype to head
+                                  // of file if called prior to definition.
+
 bool test = true;
 
 void setup() {
@@ -17,12 +20,16 @@ void loop() {
 
   // If full message is obtained, parse the command
   if(test) {
-    regex_parse();
+    Serial.print( "Test 1: ");
+    regex_parse( "asdfasg" );
+    
+    Serial.print( "Test 2: " );
+    regex_parse( "asdfasdf=42" );
     test = false;
   }
 }
 
-void regex_parse() {
+void regex_parse( const char *tg ) {          // Added input to allow for multiple tests per loop
   // Allocate storage for expected string
   char buf[100];
   
@@ -30,14 +37,20 @@ void regex_parse() {
   MatchState ms;
   // What to parse
   //ms.Target ("Testing: answer=42");
-  ms.Target ("fhausdfhs");
+  ms.Target ( tg );                           // pass variable rather than static string for
+                                              // ease of testing
 
   // Match is the expression to parse
-  char result = ms.Match("(%a+)=(%d+)", 0);
+  char result = ms.Match("(%a+)=(%d+)", 0);   // this string is looking for a string, then an equal sign
+                                              // then a number
 
   if(result = REGEXP_MATCHED) {
-    // Captures are the amount of substrings
-    Serial.print("Captures: ");
+    if( ms.level < 1 ) {                      // this looks like a glitch in the library
+      Serial.println( "False positive" );     // if ms.level is zero, it looks like the library thought
+      return;                                 // that it found a match, but it didnt really
+    }                                         // It matches on the string but failed to complete the parse
+    // Captures are the amount of substrings  // The library should really fail on this exception but it doens't
+    Serial.print("Captures: ");               // that's why we need to add this check to safety proof
     // ms.level indexes captures
     Serial.println(ms.level);
 
