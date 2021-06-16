@@ -2,11 +2,15 @@
 
 bool test = true;
 
+// FUNCTION PROTOTYPES
+void regex_parse(const char *);
+
+
+// MAIN
 void setup() {
   Serial.begin(9600);
   Serial.println();
 }
-
 void loop() {
   // TODO: Get characters from Serial Port until end of string
   //  char letter;
@@ -14,25 +18,29 @@ void loop() {
   //  while(Serial.available() > 0) {
   //    letter
   //  }
+  
+  String test_string = "b=12";
 
   // If full message is obtained, parse the command
   if(test) {
-    regex_parse();
+    regex_parse(test_string.c_str());
     test = false;
   }
 }
 
-void regex_parse() {
+
+// FUNCTION DEFINITIONS
+void regex_parse(const char *target) {
   // Allocate storage for expected string
   char buf[100];
   
-  // Object communicates with library
+  // Object communicates with Regexp library
   MatchState ms;
-  // What to parse
-  //ms.Target ("Testing: answer=42");
-  ms.Target ("b=72");
+  // "Target" passes string you want to parse to ms object
+  ms.Target (target);
 
-  // Match is the expression to parse
+  // "result" is the regular expression to look for in the target.
+  //                   (string)=(float)
   char result = ms.Match("(%a+)=(%d+)", 0);
 
   switch (result) {
