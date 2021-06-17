@@ -1,30 +1,43 @@
 #include <Regexp.h>
 
-bool test = true;
-
 // FUNCTION PROTOTYPES
 void regex_parse(const char *);
 
+// Serial port input buffer
+char cmd_string[50];
+int index = 0;
 
 // MAIN
 void setup() {
   Serial.begin(9600);
-  Serial.println();
 }
 void loop() {
-  // TODO: Get characters from Serial Port until end of string
-  //  char letter;
-  //  Serial.println("Enter your name: ");
-  //  while(Serial.available() > 0) {
-  //    letter
-  //  }
-  
-  String test_string = "b=12";
+  char letter;
+  bool cmd_end = false;
 
-  // If full message is obtained, parse the command
-  if(test) {
-    regex_parse(test_string.c_str());
-    test = false;
+  // Check for Serial port input
+  if(Serial.available() > 0) {
+    // Read one byte from Serial port
+    letter = Serial.read();
+    
+    // Assign c_string at index to `letter` and increment index
+    cmd_string[index] = letter;
+    ++index;
+
+    // Detect delimiter 'new line', which is the end of input
+    if(letter == '\n') {
+      cmd_end = true;
+    }
+  }  
+
+  // If full input is obtained, parse the command
+  if(cmd_end) {
+    // Parse input
+    regex_parse(cmd_string);
+
+    // Reset c_string buffer and index
+    memset(&cmd_string, 0, 50);
+    index = 0;
   }
 }
 
