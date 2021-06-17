@@ -1,20 +1,50 @@
 #include <Regexp.h>
 
-// FUNCTION PROTOTYPES
-void regex_parse(const char *);
+class CmdString {
+  public:
+  /*CONSTRUCTOR*/
+  CmdString() { index = 0; cmd_end = false; };
+              
+  /*FUNCTION DECLARATIONS*/
+  // Read and store Serial input
+  void get_serial_input();
+  // Check to see if done reading Serial input
+  bool check_complete();
+  // Parse Serial input
+  void parse_cmd();
 
-// Serial port input buffer
-char cmd_string[50];
-int index = 0;
+  private:
+  // Reset c_string buffer and index
+  void reset() {memset(&cmd_string, 0, 50); index = 0; cmd_end = false;}
+  
+  /*VARIABLES*/
+  char cmd_string[50];
+  char letter;
+  int index = 0;
+  bool cmd_end = false;
+  
+};
 
+// Create Objects
+CmdString cmd;
 // MAIN
-void setup() {
+void setup() 
+{
   Serial.begin(9600);
 }
-void loop() {
-  char letter;
-  bool cmd_end = false;
+void loop() 
+{
+  cmd.get_serial_input();
+  
+  if(cmd.check_complete()) {
+    cmd.parse_cmd();
+  }
+  
+}
 
+
+// FUNCTION MEMBER DEFINITIONS
+void CmdString::get_serial_input() {
   // Check for Serial port input
   if(Serial.available() > 0) {
     // Read one byte from Serial port
@@ -28,37 +58,29 @@ void loop() {
     if(letter == '\n') {
       cmd_end = true;
     }
-  }  
-
-  // If full input is obtained, parse the command
-  if(cmd_end) {
-    // Parse input
-    regex_parse(cmd_string);
-
-    // Reset c_string buffer and index
-    memset(&cmd_string, 0, 50);
-    index = 0;
   }
 }
 
+bool CmdString::check_complete() {
+  // Return true if end of serial input has been reached
+  return cmd_end;
+}
 
-// FUNCTION DEFINITIONS
-void regex_parse(const char *target) {
+void CmdString::parse_cmd() {
   // Allocate storage for expected string
   char buf[100];
   
   // Object communicates with Regexp library
   MatchState ms;
   // "Target" passes string you want to parse to ms object
-  ms.Target (target);
+  ms.Target (cmd_string);
 
-  // "result" is the regular expression to look for in the target.
-  //                   (string)=(float)
+  // "result" is the regular expression to look for in the target.            
   char result = ms.Match("(%a+)=(%d+)", 0);
-
+                     /*(string)=(float)*/
   switch (result) {
     case REGEXP_MATCHED:
-      // Captures are the amount of substrings
+      // "Captures" are the amount of substrings
       Serial.print("Captures: ");
       // ms.level indexes captures
       Serial.println(ms.level);
@@ -77,4 +99,6 @@ void regex_parse(const char *target) {
       Serial.println (result, DEC);
       break;
   }
+  // Command has been parsed and buffers can be reset
+  reset();
 }
