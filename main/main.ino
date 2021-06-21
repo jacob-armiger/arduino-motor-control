@@ -61,6 +61,7 @@ String dataString;
 void setup() 
 {
   Serial.begin(9600);
+  init_SD();
   
   // Set pin numbers
   pin_2.pin_setup(2);
@@ -70,13 +71,6 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(pin_2.pin_num),ISR_2,CHANGE);
   attachInterrupt(digitalPinToInterrupt(pin_3.pin_num),ISR_3,CHANGE);
 
-  // Initialize SD card to write to
-  Serial.print("Initializing SD card...");
-  if (!SD.begin(4)) {
-    Serial.println("initialization failed!");
-    while (1);
-  }
-  Serial.println("initialization done.");
 }
 void loop() 
 {
@@ -109,13 +103,26 @@ void loop()
   delay(100);
 }
 
-
+// INTERRUPT SERVICE ROUTINES
 void ISR_2() {
   pin_2.measure_PWM();
 }
 
 void ISR_3() {
   pin_3.measure_PWM();
+}
+
+void init_SD () {
+  // Delays are included so that printing isn't skipped
+  delay(1000);
+  // Initialize SD card to write to
+  Serial.print("Initializing SD card...");
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
+  delay(1000);
 }
 
 // FUNCTION MEMBER DEFINITIONS
