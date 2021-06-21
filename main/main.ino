@@ -35,6 +35,7 @@ class Pin {
   /*FUNCTION DECLARATIONS*/
   // To be used within the interrupt
   void measure_PWM();
+  void pin_setup(int);
 
   /*VARIABLES*/
   // Pin number on board
@@ -62,17 +63,11 @@ void setup()
   Serial.begin(9600);
   
   // Set pin numbers
-  pin_2.pin_num = 2;
-  pin_3.pin_num = 3;
+  pin_2.pin_setup(2);
+  pin_3.pin_setup(3);
   
-  // Initialize the signalPins as inputs:
-  pinMode(pin_2.pin_num, INPUT);
-  pinMode(pin_3.pin_num, INPUT);
-  
-  // Attach an interrupt to the ISR for pin 2
+  // Attach an interrupt to the ISR for pin 2 and 3
   attachInterrupt(digitalPinToInterrupt(pin_2.pin_num),ISR_2,CHANGE);
-  
-  // Attach an interrupt to the ISR for pin 3
   attachInterrupt(digitalPinToInterrupt(pin_3.pin_num),ISR_3,CHANGE);
 
   // Initialize SD card to write to
@@ -109,12 +104,6 @@ void loop()
   } else {
     Serial.println("Error: could not open test.txt");
   }
-  
-//  Serial.print("Thrust: ");
-//  Serial.println(pin_2.freq_time);
-//  
-//  Serial.print("Aux1: ");
-//  Serial.println(pin_3.freq_time);
 
   // Loop 10 times every second
   delay(100);
@@ -130,6 +119,14 @@ void ISR_3() {
 }
 
 // FUNCTION MEMBER DEFINITIONS
+void Pin::pin_setup(int physical_pin) {
+  // Set pin numbers
+  pin_num = physical_pin;
+  
+  // Initialize the signalPins as inputs:
+  pinMode(pin_num, INPUT);
+}
+
 void Pin::measure_PWM() {
   noInterrupts();
   // Read whether current signal is high/low
