@@ -13,7 +13,7 @@ class CmdString {
   // Check to see if done reading Serial input
   bool check_complete();
   // Parse Serial input
-  void parse_cmd();
+  void parse_cmd(const char*);
 
   private:
   // Reset c_string buffer and index
@@ -74,10 +74,15 @@ void setup()
 }
 void loop() 
 {
-  cmd.get_serial_input();
+  // Regular expression used to parse
+  char regex[] = "(%a+)=(%d+)";
   
+  // Read and store char from Serial port
+  cmd.get_serial_input();
+
+  // If full command from Serial port has been read, parse it
   if(cmd.check_complete()) {
-    cmd.parse_cmd();
+    cmd.parse_cmd(regex);
   }
 
   // Initialize string to empty
@@ -92,7 +97,7 @@ void loop()
   if(myFile) {
     // If file opens, write data
     myFile.println(dataString);
-    Serial.println(dataString);
+    //Serial.println(dataString);
     // Close file
     myFile.close();
   } else {
@@ -112,6 +117,7 @@ void ISR_3() {
   pin_3.measure_PWM();
 }
 
+// SD CARD INITIALIZATION
 void init_SD () {
   // Delays are included so that printing isn't skipped
   delay(1000);
@@ -171,7 +177,7 @@ bool CmdString::check_complete() {
   return cmd_end;
 }
 
-void CmdString::parse_cmd() {
+void CmdString::parse_cmd(const char *regex) {
   // Allocate storage for expected string
   char buf[100];
   
@@ -181,7 +187,7 @@ void CmdString::parse_cmd() {
   ms.Target (cmd_string);
 
   // "result" is the regular expression to look for in the target.            
-  char result = ms.Match("(%a+)=(%d+)", 0);
+  char result = ms.Match(regex, 0);
                      /*(string)=(float)*/
   switch (result) {
     case REGEXP_MATCHED:
