@@ -1,7 +1,7 @@
 #include "CmdString.h"
 #include <Regexp.h> // Regular expressions
 
-
+/*MEMBER FUNCTIONS*/
 void CmdString::get_serial_input() {
   // Check for Serial port input
   if(Serial.available() > 0) {
@@ -35,17 +35,33 @@ void CmdString::parse_cmd(const char *regex) {
 
   // "result" is the regular expression to look for in the target.            
   char result = ms.Match(regex, 0);
-                     /*(string)=(float)*/
+  
   switch (result) {
     case REGEXP_MATCHED:
-      // "Captures" are the amount of substrings
-      Serial.print("Captures: ");
-      // ms.level indexes captures
-      Serial.println(ms.level);
-
+      // A "Capture" is a regular expression that's been detected
+      // `ms.level` indexes captures
+      
       Serial.print ("Matched on: ");
-      // GetMatch traverses to index of the match and returns matched string
-      Serial.println (ms.GetMatch(buf));
+      // `GetMatch` finds the index of the match in `buf` and returns matched string
+      Serial.println(ms.GetMatch(buf));
+
+      // Detect the number of valid arguments by checking if last 3 captures are numbers
+      arg_num = 0;
+      if(isdigit(*ms.GetCapture(buf, 5))) {
+        arg_num = 3;
+      } else if(isdigit(*ms.GetCapture(buf, 4))) {
+        arg_num = 2;
+      } else if(isdigit(*ms.GetCapture(buf, 3))) {
+        arg_num = 1;
+      }      
+
+      // Store matched values
+      // Cycle through the number of arguments and set to `args`
+      for(int i=0; i<arg_num ;i++) {
+        args[i] = (ms.GetCapture(buf, 3+i));
+      }
+      // Set `func` to second third capture
+      func = (ms.GetCapture(buf, 2));
       break;
       
     case REGEXP_NOMATCH:
