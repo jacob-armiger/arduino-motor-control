@@ -5,14 +5,14 @@
 #include <SPI.h>
 #include <SD.h> // SD card
 
-
 // Create Objects
 CmdString cmd;
 Pin pin_2,pin_3;
 File myFile;
 String dataString;
 
-struct cmdSet commands[5] = {
+const int set_size = 5;
+struct cmdSet commands[set_size] = {
     { "aRead\0", AnalogRead, 1 },
     { "dRead\0", DigitalRead, 1 },
     { "pinMode\0", mSetPinMode, 2 },
@@ -25,9 +25,8 @@ void setup()
 {        
   // ms.Target( "[N]10~[T]1234.123~[C]aRead,10,30,40a0," );
   // char result = ms.Match("%[N%](%d+)~%[T%]([%d.]+)~%[C%]([a-zA-Z]*),*(%d*),*(%d*),*(%d*)")
-  // loop through cmdSet to look for third ms.level
   Serial.begin(9600);
-  // init_SD();
+  init_SD();
   
   // Set pin numbers
   pin_2.pin_setup(2);
@@ -48,22 +47,38 @@ void loop()
 
   // If full command from Serial port has been read, parse it
   if(cmd.check_complete()) {
-    // This parses and stores needed values
+    // Parse and store needed values
     cmd.parse_cmd(regex);
 
-    // TODO: change `5` to length of CmdSet
-    for(int i = 0; i<5; i++) {
+    // Search `cmd_set` for values stored from parse
+    for(int i = 0; i<set_size; i++) {
       Serial.print("Searching...");
-      
+
+      // If function name matches w/ a function from `cmd_set`, continue
       if(strcmp(cmd.func,commands[i].cmd_name) == 0) {
         // Function has been found in cmdSet
         Serial.print("Func found...");
-        
+
+        // If amount of arguments given match the number required, continue
         if(cmd.arg_num == commands[i].argIn) {
           // Arguments must be converted from String to int
-          Serial.print("Correct args...");
-          // Function call
-          commands[i].f(cmd.args[0].toInt());
+          Serial.println("Correct args...");
+
+          // If 1 or 2 arguements are required
+          if(commands[i].argIn == 1) {
+            // Function call
+            int pin = cmd.args[0].toInt();
+            int o = commands[i].f(pin);
+            Serial.print("Output: ");
+            Serial.println(o);
+          } else if(commands[i].argIn == 2) {
+            // Function call
+            int pin = cmd.args[0].toInt();
+            int var = cmd.args[1].toInt();
+            Serial.print("Output: ");
+            Serial.println(commands[i].f(2,pin,var));
+          }
+          
         } else {
           Serial.println("Invalid number of arguments.");
         }
@@ -78,27 +93,24 @@ void loop()
 
 
 
-//  // Initialize string to empty
-//  dataString = "";
-//  // Create String with interrupt-updated values
-//  dataString += String(pin_2.freq_time);
-//  dataString += ",";
-//  dataString += String(pin_3.freq_time);
-//  
-//  // Open file on SD. Only one file can be opened at a time!
-//  myFile = SD.open("test.txt", FILE_WRITE);
-//  if(myFile) {
-//    // If file opens, write data
-//    myFile.println(dataString);
-//    //Serial.println(dataString);
-//    // Close file
-//    myFile.close();
-//  } else {
-//    Serial.println("Error: could not open test.txt");
-//  }
-
-  // Loop 10 times every second
-  delay(100);
+  // Initialize string to empty
+  dataString = "";
+  // Create String with interrupt-updated values
+  dataString += String(pin_2.freq_time);
+  dataString += ",";
+  dataString += String(pin_3.freq_time);
+  
+  // Open file on SD. Only one file can be opened at a time!
+  myFile = SD.open("test.txt", FILE_WRITE);
+  if(myFile) {
+    // If file opens, write data
+    myFile.println(dataString);
+    //Serial.println(dataString);
+    // Close file
+    myFile.close();
+  } else {
+    Serial.println("Error: could not open test.txt");
+  }
 }
 
 // INTERRUPT SERVICE ROUTINES

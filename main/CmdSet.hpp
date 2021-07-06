@@ -12,8 +12,8 @@ struct cmdSet {
   int argIn;
 };
 
-int DigitalRead( int pin );
-int AnalogRead( int pin );
+int DigitalRead( int pin, ... );
+int AnalogRead( int pin, ... );
 //int testFunc(int i);
 //int verify_cmd_num( char *cmd, int cmds_rec );
 int mSetPinMode( int argc, ... );

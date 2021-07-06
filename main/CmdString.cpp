@@ -41,7 +41,7 @@ void CmdString::parse_cmd(const char *regex) {
       // A "Capture" is a regular expression that's been detected
       // `ms.level` indexes captures
       
-      Serial.print ("Matched on: ");
+      Serial.print("Matched on: ");
       // `GetMatch` finds the index of the match in `buf` and returns matched string
       Serial.println(ms.GetMatch(buf));
 
@@ -60,7 +60,7 @@ void CmdString::parse_cmd(const char *regex) {
       for(int i=0; i<arg_num ;i++) {
         args[i] = (ms.GetCapture(buf, 3+i));
       }
-      // Set `func` to second third capture
+      // Set `func` to second capture
       func = (ms.GetCapture(buf, 2));
       break;
       

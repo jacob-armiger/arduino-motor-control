@@ -5,16 +5,27 @@
 #include <avr/io.h>
 #include <string.h>
 #include <stdarg.h>
+#define VERBOSE 1
 
 
-int DigitalRead( int pin ) {
+int mprintf( const char *format, ... )
+{
+  char buf[ 256 ];
+  va_list args;
+  va_start( args, format );
+  vsprintf( buf, format, args );
+  Serial.print( buf );
+  va_end( args );
+}
+
+int DigitalRead( int pin, ... ) {
   #if VERBOSE
     mprintf("DigitalRead: %d:%d\n", pin, digitalRead( pin ) );
   #endif
   return digitalRead( pin );
 }
 
-int AnalogRead( int pin ) {
+int AnalogRead( int pin, ... ) {
   #if VERBOSE
     mprintf("AnalogRead: %d:%d\n", pin, analogRead( pin ) );
   #endif
