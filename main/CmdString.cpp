@@ -29,12 +29,12 @@ void CmdString::parse_cmd(const char *regex) {
   char buf[100];
   
   // Object communicates with Regexp library
-  MatchState ms;
+  MatchState *ms = new MatchState;
   // "Target" passes string you want to parse to ms object
-  ms.Target (cmd_string);
+  ms->Target (cmd_string);
 
   // "result" is the regular expression to look for in the target.            
-  char result = ms.Match(regex, 0);
+  char result = ms->Match(regex, 0);
   
   switch (result) {
     case REGEXP_MATCHED:
@@ -43,25 +43,25 @@ void CmdString::parse_cmd(const char *regex) {
       
       Serial.print("Matched on: ");
       // `GetMatch` finds the index of the match in `buf` and returns matched string
-      Serial.println(ms.GetMatch(buf));
+      Serial.println(ms->GetMatch(buf));
 
       // Detect the number of valid arguments by checking if last 3 captures are numbers
       arg_num = 0;
-      if(isdigit(*ms.GetCapture(buf, 5))) {
+      if(isdigit(*ms->GetCapture(buf, 5))) {
         arg_num = 3;
-      } else if(isdigit(*ms.GetCapture(buf, 4))) {
+      } else if(isdigit(*ms->GetCapture(buf, 4))) {
         arg_num = 2;
-      } else if(isdigit(*ms.GetCapture(buf, 3))) {
+      } else if(isdigit(*ms->GetCapture(buf, 3))) {
         arg_num = 1;
       }      
 
       // Store matched values
       // Cycle through the number of arguments and set to `args`
       for(int i=0; i<arg_num ;i++) {
-        args[i] = (ms.GetCapture(buf, 3+i));
+        args[i] = (ms->GetCapture(buf, 3+i));
       }
       // Set `func` to second capture
-      func = (ms.GetCapture(buf, 2));
+      func = (ms->GetCapture(buf, 2));
       break;
       
     case REGEXP_NOMATCH:
@@ -75,4 +75,5 @@ void CmdString::parse_cmd(const char *regex) {
   }
   // Command has been parsed and buffers can be reset
   reset();
+  delete( ms );
 }

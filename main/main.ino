@@ -5,6 +5,24 @@
 #include <SPI.h>
 #include <SD.h> // SD card
 
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+
 // Create Objects
 CmdString cmd;
 Pin pin_2,pin_3;
@@ -25,8 +43,8 @@ void setup()
 {        
   // ms.Target( "[N]10~[T]1234.123~[C]aRead,10,30,40a0," );
   // char result = ms.Match("%[N%](%d+)~%[T%]([%d.]+)~%[C%]([a-zA-Z]*),*(%d*),*(%d*),*(%d*)")
-  Serial.begin(9600);
-  init_SD();
+  Serial.begin(57600);
+  //init_SD();
   
   // Set pin numbers
   pin_2.pin_setup(2);
@@ -47,12 +65,15 @@ void loop()
 
   // If full command from Serial port has been read, parse it
   if(cmd.check_complete()) {
+    Serial.print( "Free Memory: " );
+    Serial.println( freeMemory() );
     // Parse and store needed values
     cmd.parse_cmd(regex);
 
     // Search `cmd_set` for values stored from parse
     for(int i = 0; i<set_size; i++) {
-      Serial.print("Searching...");
+      Serial.print("Searching for ");
+      Serial.println( cmd.func );
 
       // If function name matches w/ a function from `cmd_set`, continue
       if(strcmp(cmd.func,commands[i].cmd_name) == 0) {
@@ -101,16 +122,16 @@ void loop()
   dataString += String(pin_3.freq_time);
   
   // Open file on SD. Only one file can be opened at a time!
-  myFile = SD.open("test.txt", FILE_WRITE);
-  if(myFile) {
-    // If file opens, write data
-    myFile.println(dataString);
-    //Serial.println(dataString);
-    // Close file
-    myFile.close();
-  } else {
-    Serial.println("Error: could not open test.txt");
-  }
+//  myFile = SD.open("test.txt", FILE_WRITE);
+//  if(myFile) {
+//    // If file opens, write data
+//    myFile.println(dataString);
+//    //Serial.println(dataString);
+//    // Close file
+//    myFile.close();
+//  } else {
+//    Serial.println("Error: could not open test.txt");
+//  }
 }
 
 // INTERRUPT SERVICE ROUTINES
